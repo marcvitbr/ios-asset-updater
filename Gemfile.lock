@@ -1,0 +1,19 @@
+PATH
+  remote: .
+  specs:
+    ios-asset-updater (0.0.1)
+      colorize (~> 0.8.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    colorize (0.8.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  ios-asset-updater!
+
+BUNDLED WITH
+   1.17.3
