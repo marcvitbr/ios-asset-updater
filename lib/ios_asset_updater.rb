@@ -22,60 +22,59 @@ class IOSAssetUpdater
 
     log("Searching image assets (png,jpg) in #{source}".light_blue)
 
-    source_files = Dir["#{source}/**/*.{jpg,png}"]
-    destination_files = Dir["#{destination}/**/*.{jpg,png}"]
+    source_files = files_in_dir(source)
+    source_hash = create_hash(source_files)
+
+    destination_files = files_in_dir(destination)
+    destination_hash = create_hash(destination_files)
 
     not_found = []
 
     source_files.each do |source_file_path|
-      search_file_extension = File.extname(source_file_path)
-      search_file_name = File.basename(source_file_path, search_file_extension)
+      source_file = source_hash[source_file_path]
 
-      destination_file_path = find_path(search_file_name, destination_files)
+      destination_file_path = find_path(source_file[:name], destination_files)
 
       if destination_file_path.nil? || destination_file_path.empty?
         not_found.push(source_file_path)
         next
       end
 
-      log_separator
+      destination_file = destination_hash[destination_file_path]
 
-      log("#{'Copying ->'.light_green} #{source_file_path}")
+      copy(source_file_path, destination_file[:dir])
 
-      destination_folder = File.dirname(destination_file_path)
-
-      FileUtils.cp(source_file_path, destination_folder)
-
-      source_file_basename = File.basename(source_file_path)
-      destination_file_basename = File.basename(destination_file_path)
-
-      if extension_equal?(source_file_basename, destination_file_basename)
+      if extension_equal?(source_file[:basename], destination_file[:basename])
         log("#{'File extensions are equal ->'.light_green} "\
           'No need for updating Contents.json')
         next
       end
 
-      log('File extensions are different. Updating Contents.json'.light_green)
+      update_contents_json(source_file, destination_file)
 
-      contents_json_file_path = "#{destination_folder}/Contents.json"
-      contents_json_file = File.read(contents_json_file_path)
-      contents_json = JSON.parse(contents_json_file)
-
-      image_json = contents_json['images'].find do |content|
-        content['filename'].match(search_file_name)
-      end
-      image_json['filename'] = File.basename(source_file_path)
-
-      File.open(contents_json_file_path, 'w') do |f|
-        f.write(JSON.pretty_generate(contents_json))
-      end
-
-      File.delete(destination_file_path)
-
-      log("Deleted outdated file -> #{destination_file_path}".light_red)
+      delete(destination_file_path)
     end
 
     log_not_found(not_found)
+  end
+
+  def self.files_in_dir(dir)
+    Dir["#{dir}/**/*.{jpg,png}"]
+  end
+
+  def self.create_hash(files)
+    new_hash = {}
+    files.each do |file|
+      properties = {}
+      properties[:extension] = File.extname(file)
+      properties[:basename] = File.basename(file)
+      properties[:name] = File.basename(file, properties[:extension])
+      properties[:dir] = File.dirname(file)
+      properties[:contents_path] = "#{properties[:dir]}/Contents.json"
+
+      new_hash[file] = properties
+    end
+    new_hash
   end
 
   def self.find_path(search_file_name, destination_files)
@@ -85,11 +84,39 @@ class IOSAssetUpdater
     end
   end
 
+  def self.copy(source, destination)
+    log_separator
+    log("#{'Copying ->'.light_green} #{source}")
+    FileUtils.cp(source, destination)
+  end
+
   def self.extension_equal?(source_file_path, destination_file_path)
     source_file_path_basename = File.basename(source_file_path)
     destination_file_path_basename = File.basename(destination_file_path)
 
     source_file_path_basename.eql?(destination_file_path_basename)
+  end
+
+  def self.update_contents_json(source_file, destination_file)
+    log('File extensions are different. Updating Contents.json'.light_green)
+
+    contents_json_file = File.read(destination_file[:contents_path])
+    contents_json = JSON.parse(contents_json_file)
+
+    image_json = contents_json['images'].find do |content|
+      content['filename'].match(destination_file[:basename])
+    end
+
+    image_json['filename'] = source_file[:basename]
+
+    File.open(destination_file[:contents_path], 'w') do |f|
+      f.write(JSON.pretty_generate(contents_json))
+    end
+  end
+
+  def self.delete(path)
+    File.delete(path)
+    log("Deleted outdated file -> #{path}".light_red)
   end
 
   def self.log_not_found(not_found)
