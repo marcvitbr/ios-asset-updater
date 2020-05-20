@@ -17,7 +17,7 @@ class IOSAssetUpdater
   def self.update(source, destination)
     if source.empty? || destination.empty?
       log('You must provide source and destination folders'.light_red)
-      return
+      return false
     end
 
     log("Searching image assets (png,jpg) in #{source}".light_blue)
@@ -56,6 +56,8 @@ class IOSAssetUpdater
     end
 
     log_not_found(not_found)
+
+    return true
   end
 
   def self.files_in_dir(dir)
