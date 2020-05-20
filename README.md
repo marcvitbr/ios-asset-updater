@@ -9,5 +9,4 @@ The file Contents.json is updated to reflect the changes.
 ### TODO
 
 - Support .pdf files;
-- Upload Gem;
 - Add examples;
