@@ -2,7 +2,8 @@
 
 Gem::Specification.new do |s|
   s.name        = 'ios-asset-updater'
-  s.version     = '0.0.1'
+  s.version     = '0.0.2'
+  s.executables << 'ios_asset_updater'
   s.date        = '2020-05-19'
   s.summary     = 'iOS Asset Updater'
   s.description = 'Update iOS Assets in an easy and quick way'
