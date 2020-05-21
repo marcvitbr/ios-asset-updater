@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ios-asset-updater (0.0.1)
+    ios-asset-updater (0.0.2)
       colorize (~> 0.8.1)
 
 GEM

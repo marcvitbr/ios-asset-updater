@@ -73,7 +73,6 @@ class IOSAssetUpdater
       properties[:name] = File.basename(file, properties[:extension])
       properties[:dir] = File.dirname(file)
       properties[:contents_path] = "#{properties[:dir]}/Contents.json"
-
       new_hash[file] = properties
     end
     new_hash
